@@ -1,0 +1,126 @@
+name: python-ci-release
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+
+env:
+  KEYCLOAK_IMAGE: quay.io/keycloak/keycloak:26.0.7
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e "./python[dev]"
+          pip install build
+      - name: Ruff
+        run: cd python && ruff check src/keycloak_client
+      - name: Mypy
+        run: cd python && mypy src/keycloak_client
+      - name: Unit tests
+        run: |
+          cd python
+          pytest -q tests --ignore=tests/integration
+      - name: Build artifacts
+        run: |
+          cd python
+          python -m build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: python/dist/*
+
+  openapi-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e "./python[dev]"
+      - name: OpenAPI drift check
+        # Pin via KEYCLOAK_OPENAPI_URL when a versioned docs path is available; "latest" tracks current docs.
+        run: python scripts/check_keycloak_openapi_drift.py
+
+  integration-keycloak:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Start Keycloak
+        run: |
+          docker run -d --name keycloak -p 8080:8080 \
+            -e KEYCLOAK_ADMIN=admin \
+            -e KEYCLOAK_ADMIN_PASSWORD=admin \
+            ${{ env.KEYCLOAK_IMAGE }} start-dev \
+            --http-enabled=true --hostname-strict=false
+      - name: Wait for Keycloak
+        run: |
+          set -e
+          for i in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:8080/realms/master >/dev/null 2>&1; then
+              echo "Keycloak ready after ${i} attempts"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Keycloak failed to become ready"
+          docker logs keycloak --tail 80 || true
+          exit 1
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e "./python[dev]"
+      - name: Integration tests
+        env:
+          KEYCLOAK_INTEGRATION: "1"
+          KEYCLOAK_BASE_URL: http://127.0.0.1:8080
+          KEYCLOAK_CLIENT_ID: admin-cli
+          KEYCLOAK_CLIENT_SECRET: ""
+        run: |
+          cd python
+          pytest -q tests/integration -v
+      - name: Stop Keycloak
+        if: always()
+        run: docker rm -f keycloak 2>/dev/null || true
+
+  publish-private:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [quality, openapi-drift, integration-keycloak]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install publish tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+      - name: Build
+        run: |
+          cd python
+          python -m build
+      - name: Publish to private registry
+        env:
+          TWINE_USERNAME: ${{ secrets.PRIVATE_PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PRIVATE_PYPI_PASSWORD }}
+          TWINE_REPOSITORY_URL: ${{ secrets.PRIVATE_PYPI_REPOSITORY_URL }}
+        run: |
+          cd python
+          twine upload --repository-url "$TWINE_REPOSITORY_URL" dist/*
