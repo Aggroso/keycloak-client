@@ -1,52 +1,40 @@
-# Private Registry Consumer Setup
+# Consumer Setup (Option B: Git tag install)
 
-Use this guide for installing/consuming SDK packages from internal registries.
+Use this guide to consume the SDK without a package registry.
 
-## Python (pip)
+## Python install from Git tag
 
-### One-time install command
+Public repository:
 
 ```bash
-pip install --index-url https://<private-registry>/simple keycloak-client
+pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
 ```
 
-### With `pip.conf` / `pip.ini`
+Private repository (SSH):
 
-Linux/macOS (`~/.config/pip/pip.conf`):
-
-```ini
-[global]
-index-url = https://<username>:<token>@<private-registry>/simple
+```bash
+pip install "git+ssh://git@github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
 ```
 
-Windows (`%APPDATA%\pip\pip.ini`):
+## Pinning strategy
 
-```ini
-[global]
-index-url = https://<username>:<token>@<private-registry>/simple
+- Prefer release tags (`vX.Y.Z`) for stable consumption.
+- Use commit SHAs only for hotfix testing.
+- Avoid branch-based installs in production.
+
+## requirements.txt example
+
+```txt
+keycloak-client @ git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python
 ```
 
-### Recommended authentication handling
-
-- Use short-lived tokens from secrets manager or CI secret store.
-- Avoid embedding credentials in committed files.
-- Rotate private index credentials periodically.
-
-## TypeScript (npm)
+## TypeScript (deferred)
 
 TypeScript package publishing is deferred until a `typescript/` package is added to this repo.
 
-When available, consumer setup should use `.npmrc`:
-
-```ini
-@yourorg:registry=https://<private-npm-registry>/
-//<private-npm-registry>/:_authToken=${NPM_TOKEN}
-always-auth=true
-```
-
 ## Internal rollout checklist
 
-- Python package publish credentials configured in CI secrets.
-- Consumer docs point to current private index URL.
-- Security review confirms token storage/rotation policy.
+- Release tag created and pushed (`vX.Y.Z`).
+- CI quality + integration + drift jobs green for the tag.
+- Consumer projects update Git tag dependency.
 

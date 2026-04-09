@@ -16,7 +16,8 @@
 3. Ensure CI is green for quality, integration, OpenAPI drift, and security checks.
 4. Update changelog and compatibility notes.
 5. Create release tag.
-6. CI publishes package to private Python registry.
+6. CI builds and uploads Python release artifacts for version tags (no registry publish).
+7. Consumers install from git tag (`pip install "git+...@vX.Y.Z#subdirectory=python"`).
 
 See also:
 

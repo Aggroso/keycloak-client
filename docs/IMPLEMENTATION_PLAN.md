@@ -451,10 +451,10 @@ Deliverable: CI-proven compatibility baseline and drift detection.
    - common tasks
    - session inheritance flow examples and caveats
 3. Publish route-to-method mapping and permission notes.
-4. Finalize release pipeline for PyPI and npm.
-5. Finalize private registry publishing workflow and consumer setup docs:
-   - pip private index configuration
-   - npm private registry configuration
+4. Finalize release pipeline for Git-tag distribution and npm (deferred).
+5. Finalize consumer setup docs:
+   - Python Git-tag install (`pip install git+...#subdirectory=python`)
+   - npm registry guidance deferred until TypeScript package exists
    - internal authentication/token setup guidance
 
 Deliverable: publish-ready docs and release workflow.
@@ -472,8 +472,8 @@ Deliverable: publish-ready docs and release workflow.
   - `docs/RELEASE_PROCESS.md`
   - `docs/RELEASE_PIPELINES.md`
   - `scripts/pre_release_validation.sh` as local release gate helper
-- Consumer private registry setup docs:
-  - `docs/PRIVATE_REGISTRY_CONSUMER_SETUP.md` (pip + npm guidance, npm marked deferred)
+- Consumer setup docs for Option B:
+  - `docs/PRIVATE_REGISTRY_CONSUMER_SETUP.md` (Git-tag install guidance + npm deferred)
 - Phase 8 status: **completed for Python-first scope** (TypeScript package/pipeline pending package creation).
 
 ## Testing matrix (minimum)

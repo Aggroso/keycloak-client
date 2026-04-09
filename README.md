@@ -43,10 +43,10 @@ The package uses a layered design:
 
 ## Installation
 
-Private registry install:
+Install from Git tag (recommended):
 
 ```bash
-pip install --index-url https://<private-registry>/simple keycloak-client
+pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
 ```
 
 Repository development install:
@@ -177,5 +177,5 @@ scripts/pre_release_validation.sh
 - `docs/SECURITY_MODEL.md` - security controls and redaction policy
 - `docs/INTEGRATION_TESTING.md` - local/CI integration testing
 - `docs/OPENAPI_DRIFT.md` - OpenAPI drift checks
-- `docs/PRIVATE_REGISTRY_CONSUMER_SETUP.md` - private pip/npm consumer setup
+- `docs/PRIVATE_REGISTRY_CONSUMER_SETUP.md` - Git/pip consumer setup (Option B)
 - `docs/RELEASE_PROCESS.md` and `docs/RELEASE_PIPELINES.md` - release execution and pipeline details

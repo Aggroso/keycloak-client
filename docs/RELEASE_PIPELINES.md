@@ -2,7 +2,7 @@
 
 This document tracks release pipeline readiness by language package.
 
-## Python package pipeline (implemented)
+## Python package pipeline (implemented, Option B: Git tag distribution)
 
 Workflow: `.github/workflows/python-ci-release.yml`
 
@@ -16,15 +16,13 @@ Workflow: `.github/workflows/python-ci-release.yml`
 - `integration-keycloak` job
   - Keycloak container startup + health wait
   - Integration tests with `KEYCLOAK_INTEGRATION=1`
-- `publish-private` job (tag-gated)
+- `release-artifacts` job (tag-gated)
   - Build package
-  - Upload via `twine` to private registry
+  - Upload `dist/*` artifacts to GitHub Actions run artifacts
 
 Required secrets:
 
-- `PRIVATE_PYPI_USERNAME`
-- `PRIVATE_PYPI_PASSWORD`
-- `PRIVATE_PYPI_REPOSITORY_URL`
+- None for package publishing (artifact upload only)
 
 ## TypeScript package pipeline (deferred)
 
@@ -61,3 +59,12 @@ KEYCLOAK_CLIENT_SECRET=<bootstrap-client-secret> \
 scripts/pre_release_validation.sh
 ```
 
+
+
+## Consumer install (Git tag)
+
+Use tagged versions directly from GitHub:
+
+```bash
+pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
+```

@@ -28,4 +28,4 @@ Integration job environment (typical):
 - `KEYCLOAK_CLIENT_ID=admin-cli`
 - `KEYCLOAK_CLIENT_SECRET` empty for dev `admin-cli`
 
-Tag releases still require **quality**, **openapi-drift**, and **integration-keycloak** to succeed before **publish-private** runs.
+Tag releases still require **quality**, **openapi-drift**, and **integration-keycloak** to succeed before **release-artifacts** runs.

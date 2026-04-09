@@ -99,7 +99,7 @@ jobs:
         if: always()
         run: docker rm -f keycloak 2>/dev/null || true
 
-  publish-private:
+  release-artifacts:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [quality, openapi-drift, integration-keycloak]
     runs-on: ubuntu-latest
@@ -108,19 +108,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install publish tools
+      - name: Install build tools
         run: |
           python -m pip install --upgrade pip
-          pip install build twine
+          pip install build
       - name: Build
         run: |
           cd python
           python -m build
-      - name: Publish to private registry
-        env:
-          TWINE_USERNAME: ${{ secrets.PRIVATE_PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PRIVATE_PYPI_PASSWORD }}
-          TWINE_REPOSITORY_URL: ${{ secrets.PRIVATE_PYPI_REPOSITORY_URL }}
-        run: |
-          cd python
-          twine upload --repository-url "$TWINE_REPOSITORY_URL" dist/*
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist-release-${{ github.ref_name }}
+          path: python/dist/*

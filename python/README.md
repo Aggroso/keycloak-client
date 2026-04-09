@@ -4,10 +4,10 @@ Python SDK for Keycloak Admin and selected OIDC routes.
 
 ## Install
 
-### From private registry
+### From Git tag (recommended)
 
 ```bash
-pip install --index-url https://<private-registry>/simple keycloak-client
+pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
 ```
 
 ### From source (this repository)

@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- Release/distribution strategy switched to Option B (Git tag install):
+  - tag workflow builds and uploads release artifacts (`release-artifacts` job)
+  - consumer install via `pip install "git+https://...@vX.Y.Z#subdirectory=python"`
 - Phase 8 documentation and release-readiness:
   - Expanded root and Python package READMEs (`README.md`, `python/README.md`)
   - Added route-method permission map (`docs/ROUTE_METHOD_PERMISSION_MAP.md`)
