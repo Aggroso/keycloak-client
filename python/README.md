@@ -2,19 +2,23 @@
 
 Python SDK for Keycloak Admin and selected OIDC routes.
 
+> Requires Python `>=3.11`.
+
 ## Install
 
 ### From Git tag (recommended)
 
 ```bash
-pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
+python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
 ```
 
 ### From source (this repository)
 
 ```bash
-pip install -e "./python[dev]"
+python3.11 -m pip install -e "./python[dev]"
 ```
+
+If your default `python3` is older (for example `3.9.x`), always call `python3.11 -m pip ...`.
 
 ## Authentication configuration
 

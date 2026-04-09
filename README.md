@@ -25,6 +25,14 @@ Production-oriented, Python-first Keycloak SDK for selected Admin and OIDC route
 - Keycloak latest-stable target (see `docs/KEYCLOAK_COMPATIBILITY_POLICY.md`)
 - Backend/server runtime for admin operations (`/admin/*` must not run in browsers)
 
+Quick precheck:
+
+```bash
+python3 --version
+```
+
+If this is below `3.11`, install/use `python3.11` explicitly for package installation.
+
 ## Architecture
 
 The package uses a layered design:
@@ -46,13 +54,29 @@ The package uses a layered design:
 Install from Git tag (recommended):
 
 ```bash
-pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
+python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
 ```
 
 Repository development install:
 
 ```bash
-pip install -e "./python[dev]"
+python3.11 -m pip install -e "./python[dev]"
+```
+
+## Troubleshooting
+
+If you see:
+
+```text
+ERROR: Package 'keycloak-client' requires a different Python: 3.9.x not in '>=3.11'
+```
+
+it means `pip` is using a Python interpreter older than `3.11`.
+
+Use:
+
+```bash
+python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
 ```
 
 ## Bootstrap client setup (Keycloak)
