@@ -17,6 +17,7 @@ Production-oriented, Python-first Keycloak SDK for selected Admin and OIDC route
 - [Quick start](#quick-start)
 - [Common usage](#common-usage)
 - [Validation before release](#validation-before-release)
+- [What this library does not do](#what-this-library-does-not-do)
 - [Documentation index](#documentation-index)
 
 ## Requirements
@@ -54,7 +55,7 @@ The package uses a layered design:
 Install from Git tag (recommended):
 
 ```bash
-python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
+python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.2#subdirectory=python"
 ```
 
 Repository development install:
@@ -76,7 +77,7 @@ it means `pip` is using a Python interpreter older than `3.11`.
 Use:
 
 ```bash
-python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
+python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.2#subdirectory=python"
 ```
 
 ## Bootstrap client setup (Keycloak)
@@ -169,11 +170,30 @@ await client.services.bff.build_login_url(
 )
 ```
 
-Session inheritance behavior:
+### Admin token options
 
-- Inheritance is trust handoff, not shared session object reuse.
+- **Client credentials** (default): `client_id` + `client_secret` on `KeycloakClientConfig`.
+- **Password grant (ROPC)** for bootstrap only: set `token_endpoint_grant="password"`, `resource_owner_username`, `resource_owner_password`; see RFC 9700 guidance—prefer service accounts for automation.
+- **Injected Bearer**: pass `access_token_provider=callable` to `KeycloakClient`; the callable receives the transport’s `httpx.AsyncClient` and must return a Bearer token string (implement your own caching/single-flight if needed).
+
+### Dual base URL (internal vs public)
+
+Use `base_url` for server-to-server calls and `public_base_url` so `services.bff.build_login_url` points the browser at your public Keycloak hostname.
+
+### Idempotent provisioning
+
+```python
+from keycloak_client import ensure_realm, ensure_user_by_username
+
+await ensure_realm(client, "acme", create_payload={"enabled": True})
+await ensure_user_by_username(client, "acme", "alice", create_payload={"enabled": True})
+```
+
+### Session inheritance (cross-realm)
+
+- Trust handoff, not a shared session object or shared refresh token across realms.
 - Child realm authorization is always required.
-- Fail-closed behavior is expected on trust/policy failures.
+- See [`docs/SESSION_INHERITANCE.md`](./docs/SESSION_INHERITANCE.md) for threat model, Keycloak configuration notes, and a minimal parent→child reference flow.
 
 ## Validation before release
 
@@ -193,6 +213,19 @@ KEYCLOAK_CLIENT_SECRET=<bootstrap-client-secret> \
 scripts/pre_release_validation.sh
 ```
 
+## What this library does not do
+
+The SDK focuses on **Keycloak API access**, **transport/auth/error policy**, and **optional BFF/OIDC helpers**. It does **not** replace application-specific auth architecture:
+
+- Owning **PKCE** `state` / `nonce` storage or your redirect/callback validation rules
+- Your **redirect URI policy** (allow-lists, per-tenant routes, open redirects)
+- **Local database** user/tenant sync, or mapping Keycloak identities to your domain model
+- Issuing **application JWTs** or cookies, or your **session** / refresh lifecycle outside Keycloak APIs
+- **Post-logout cleanup** in your app (clearing cookies, revoking app-issued sessions, device UX) beyond calling Keycloak logout endpoints
+- **Tenant** or permission semantics inside your product
+
+For the integrator checklist and happy path, see [`docs/CONSUMER_INTEGRATION_REQUIREMENTS.md`](./CONSUMER_INTEGRATION_REQUIREMENTS.md).
+
 ## Documentation index
 
 - `python/README.md` - package-level setup and examples
@@ -202,4 +235,6 @@ scripts/pre_release_validation.sh
 - `docs/INTEGRATION_TESTING.md` - local/CI integration testing
 - `docs/OPENAPI_DRIFT.md` - OpenAPI drift checks
 - `docs/PRIVATE_REGISTRY_CONSUMER_SETUP.md` - Git/pip consumer setup (Option B)
+- `docs/CONSUMER_INTEGRATION_REQUIREMENTS.md` - library vs app-owned, happy path, install pins
+- `docs/SESSION_INHERITANCE.md` - cross-realm trust handoff (`InheritanceService`)
 - `docs/RELEASE_PROCESS.md` and `docs/RELEASE_PIPELINES.md` - release execution and pipeline details

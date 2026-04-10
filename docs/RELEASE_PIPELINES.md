@@ -66,5 +66,5 @@ scripts/pre_release_validation.sh
 Use tagged versions directly from GitHub:
 
 ```bash
-pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
+pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.2#subdirectory=python"
 ```

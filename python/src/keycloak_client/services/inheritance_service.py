@@ -9,6 +9,13 @@ from .workflow_common import failed_result, success_result
 
 
 class InheritanceService:
+    """Cross-realm **trust handoff** helpers (not shared browser/session objects).
+
+    Silent SSO (``prompt=none``) and child-realm role checks are building blocks; your
+    deployment must configure Keycloak realms, clients, and trust boundaries explicitly.
+    See ``docs/SESSION_INHERITANCE.md`` for threat model and a minimal parent→child flow.
+    """
+
     def __init__(self, client, observability) -> None:
         self._client = client
         self._obs = observability

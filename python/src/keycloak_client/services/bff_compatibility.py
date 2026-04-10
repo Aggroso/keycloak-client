@@ -24,6 +24,17 @@ class BffCompatibilityService:
         self._client = client
         self._obs = observability
 
+    @staticmethod
+    def _browser_base_url(config: Any) -> str:
+        fn = getattr(config, "browser_base_url", None)
+        if callable(fn):
+            return str(fn()).rstrip("/")
+        public = getattr(config, "public_base_url", None)
+        base = str(getattr(config, "base_url", "")).rstrip("/")
+        if public:
+            return str(public).rstrip("/")
+        return base
+
     def _map_token_payload(
         self, payload: dict[str, Any] | None, correlation_id: str
     ) -> BffTokenResult:
@@ -73,7 +84,7 @@ class BffCompatibilityService:
         if req.code_challenge:
             q["code_challenge"] = req.code_challenge
             q["code_challenge_method"] = req.code_challenge_method or "S256"
-        base = self._client.config.base_url
+        base = self._browser_base_url(self._client.config)
         path = f"/realms/{req.realm}/protocol/openid-connect/auth"
         login_url = f"{base}{path}?{urlencode(q)}"
         self._obs.emit(

@@ -51,6 +51,33 @@ def test_auth_provider_raises_on_error() -> None:
     asyncio.run(run())
 
 
+def test_auth_provider_password_grant() -> None:
+    async def run() -> None:
+        async def handler(request: httpx.Request) -> httpx.Response:
+            assert request.url.path.endswith("/token")
+            body = request.content.decode()
+            assert "grant_type=password" in body
+            assert "username=admin" in body
+            return httpx.Response(200, json={"access_token": "ropc", "expires_in": 120})
+
+        transport = httpx.MockTransport(handler)
+        cfg = KeycloakClientConfig(
+            base_url="https://kc.example.com",
+            realm="demo",
+            client_id="admin-cli",
+            client_secret="",
+            token_endpoint_grant="password",
+            resource_owner_username="admin",
+            resource_owner_password="pw",
+        )
+        async with httpx.AsyncClient(base_url="https://kc.example.com", transport=transport) as client:
+            provider = AuthProvider(cfg)
+            token = await provider.get_access_token(client)
+            assert token == "ropc"
+
+    asyncio.run(run())
+
+
 def test_auth_provider_single_flight() -> None:
     async def run() -> None:
         calls = {"count": 0}

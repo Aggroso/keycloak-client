@@ -18,6 +18,32 @@ def _cfg() -> KeycloakClientConfig:
     )
 
 
+def test_transport_uses_injected_access_token_provider() -> None:
+    async def run() -> None:
+        paths: list[str] = []
+
+        async def handler(request: httpx.Request) -> httpx.Response:
+            paths.append(request.url.path)
+            assert request.headers.get("Authorization") == "Bearer injected"
+            return httpx.Response(200, json={"ok": True})
+
+        cfg = _cfg()
+        auth = AuthProvider(cfg)
+
+        async def provider(_client: httpx.AsyncClient) -> str:
+            return "injected"
+
+        tr = Transport(cfg, auth, access_token_provider=provider)
+        tr._client = httpx.AsyncClient(
+            base_url=cfg.base_url, transport=httpx.MockTransport(handler), verify=cfg.verify_tls
+        )
+        await tr.request("GET", "/admin/realms/demo/users")
+        assert not any(p.endswith("/token") for p in paths)
+        await tr.close()
+
+    asyncio.run(run())
+
+
 def test_transport_injects_auth_header() -> None:
     async def run() -> None:
         async def handler(request: httpx.Request) -> httpx.Response:

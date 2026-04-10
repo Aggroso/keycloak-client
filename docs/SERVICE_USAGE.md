@@ -14,6 +14,28 @@ cfg = KeycloakClientConfig(
 client = KeycloakClient(cfg)
 ```
 
+Optional (see root `README.md` and `docs/CONSUMER_INTEGRATION_REQUIREMENTS.md`):
+
+- **`public_base_url`**: browser-facing Keycloak URL for `build_login_url` while `base_url` stays internal.
+- **`KeycloakClient(..., access_token_provider=...)`**: inject Admin API Bearer tokens (e.g. password-grant or vault-held tokens).
+- **`token_endpoint_grant="password"`** (+ username/password on config): ROPC for bootstrap only; prefer service accounts.
+
+## Idempotent provisioning helpers
+
+For scripts and bootstrapping without duplicating HTTP glue:
+
+```python
+from keycloak_client import ensure_realm, ensure_user_by_username, ensure_client_by_client_id
+
+await ensure_realm(client, "acme", create_payload={"enabled": True})
+await ensure_client_by_client_id(
+    client, "acme", client_id="api", create_payload={"protocol": "openid-connect"}
+)
+await ensure_user_by_username(client, "acme", "alice", create_payload={"enabled": True})
+```
+
+Sync callers: `from keycloak_client.sync_support import run_async` (scripts only; not from a running event loop).
+
 ## Bootstrap realm
 ```python
 from keycloak_client.models.service_models import BootstrapRealmRequest
@@ -60,9 +82,12 @@ tokens = await client.services.bff.complete_login(
 - Parent authentication does not grant child realm authorization automatically.
 - Child entitlement checks must pass before local session establishment.
 - Treat inheritance failures as expected fail-closed outcomes and handle retries/user prompts upstream.
+- Threat model and reference flow: `docs/SESSION_INHERITANCE.md`.
 
 ## Related docs
 
+- `docs/CONSUMER_INTEGRATION_REQUIREMENTS.md`
+- `docs/SESSION_INHERITANCE.md`
 - `docs/ROUTE_METHOD_PERMISSION_MAP.md`
 - `docs/SECURITY_MODEL.md`
 - `docs/INTEGRATION_TESTING.md`

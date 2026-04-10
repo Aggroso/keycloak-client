@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from typing import Any
 
 import httpx
@@ -11,9 +11,17 @@ from .config import IDEMPOTENT_METHODS, KeycloakClientConfig
 from .errors import ErrorContext, KeycloakApiError, KeycloakTransportError
 from .redaction import redact_value
 
+AccessTokenProvider = Callable[[httpx.AsyncClient], Awaitable[str]]
+
 
 class Transport:
-    def __init__(self, config: KeycloakClientConfig, auth_provider: AuthProvider) -> None:
+    def __init__(
+        self,
+        config: KeycloakClientConfig,
+        auth_provider: AuthProvider,
+        *,
+        access_token_provider: AccessTokenProvider | None = None,
+    ) -> None:
         timeout = httpx.Timeout(
             connect=config.timeout.connect,
             read=config.timeout.read,
@@ -25,6 +33,7 @@ class Transport:
         )
         self._config = config
         self._auth_provider = auth_provider
+        self._access_token_provider = access_token_provider
 
     async def close(self) -> None:
         await self._client.aclose()
@@ -46,7 +55,10 @@ class Transport:
         merged_headers: dict[str, str] = dict(headers or {})
 
         if auth_required:
-            token = await self._auth_provider.get_access_token(self._client)
+            if self._access_token_provider is not None:
+                token = await self._access_token_provider(self._client)
+            else:
+                token = await self._auth_provider.get_access_token(self._client)
             merged_headers["Authorization"] = f"Bearer {token}"
 
         for attempt in range(1, attempts + 1):

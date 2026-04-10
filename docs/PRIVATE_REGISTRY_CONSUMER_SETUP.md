@@ -7,13 +7,13 @@ Use this guide to consume the SDK without a package registry.
 Public repository:
 
 ```bash
-python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
+python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.2#subdirectory=python"
 ```
 
 Private repository (SSH):
 
 ```bash
-python3.11 -m pip install "git+ssh://git@github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
+python3.11 -m pip install "git+ssh://git@github.com/Aggroso/keycloak-client.git@v0.1.2#subdirectory=python"
 ```
 
 ## Pinning strategy
@@ -26,7 +26,7 @@ python3.11 -m pip install "git+ssh://git@github.com/Aggroso/keycloak-client.git@
 ## requirements.txt example
 
 ```txt
-keycloak-client @ git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python
+keycloak-client @ git+https://github.com/Aggroso/keycloak-client.git@v0.1.2#subdirectory=python
 ```
 
 ## TypeScript (deferred)

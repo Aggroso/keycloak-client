@@ -13,14 +13,21 @@ from .raw.realms import RealmRoutes
 from .raw.roles import RoleRoutes
 from .raw.users import UserRoutes
 from .services import ServiceRegistry
-from .transport import Transport
+from .transport import AccessTokenProvider, Transport
 
 
 class KeycloakClient:
-    def __init__(self, config: KeycloakClientConfig) -> None:
+    def __init__(
+        self,
+        config: KeycloakClientConfig,
+        *,
+        access_token_provider: AccessTokenProvider | None = None,
+    ) -> None:
         self.config = config
         self.auth_provider = AuthProvider(config)
-        self.transport = Transport(config, self.auth_provider)
+        self.transport = Transport(
+            config, self.auth_provider, access_token_provider=access_token_provider
+        )
 
         self.auth = AuthRoutes(self.transport)
         self.users = UserRoutes(self.transport)

@@ -9,7 +9,7 @@ Python SDK for Keycloak Admin and selected OIDC routes.
 ### From Git tag (recommended)
 
 ```bash
-python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.0#subdirectory=python"
+python3.11 -m pip install "git+https://github.com/Aggroso/keycloak-client.git@v0.1.2#subdirectory=python"
 ```
 
 ### From source (this repository)
@@ -22,13 +22,19 @@ If your default `python3` is older (for example `3.9.x`), always call `python3.1
 
 ## Authentication configuration
 
-The SDK currently uses `client_credentials` for admin token acquisition.
+Default admin tokens use **client credentials**. Alternatives:
+
+- **`token_endpoint_grant="password"`** plus `resource_owner_username` / `resource_owner_password` (ROPC; discouraged for interactive users).
+- **`KeycloakClient(config, access_token_provider=async_callable)`** to supply a Bearer token for `/admin/*` yourself.
+
+Use **`public_base_url`** when browsers must hit a public Keycloak hostname while the server uses **`base_url`** internally (BFF `build_login_url` only).
 
 ```python
 from keycloak_client import KeycloakClient, KeycloakClientConfig
 
 config = KeycloakClientConfig(
     base_url="https://keycloak.example.com",
+    public_base_url="https://auth.example.com",  # optional
     realm="master",
     admin_realm="master",
     client_id="bootstrap-client",

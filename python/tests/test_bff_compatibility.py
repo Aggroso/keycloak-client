@@ -43,6 +43,29 @@ def _client() -> FakeClient:
     return FakeClient(auth=FakeAuth(), config=cfg)
 
 
+def test_build_login_url_uses_public_base_when_set() -> None:
+    async def run() -> None:
+        cfg = SimpleNamespace(
+            base_url="https://internal.kc",
+            public_base_url="https://public.kc",
+            client_id="svc",
+            client_secret="topsecret",
+        )
+        svc = BffCompatibilityService(FakeClient(auth=FakeAuth(), config=cfg), Observability())
+        res = await svc.build_login_url(
+            BuildLoginUrlRequest(
+                realm="demo",
+                client_id="svc",
+                redirect_uri="https://app/callback",
+                state="s1",
+                nonce="n1",
+            )
+        )
+        assert res.login_url.startswith("https://public.kc/realms/demo/protocol/openid-connect/auth")
+
+    asyncio.run(run())
+
+
 def test_build_login_url() -> None:
     async def run() -> None:
         svc = BffCompatibilityService(_client(), Observability())
